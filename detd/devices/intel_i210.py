@@ -30,6 +30,10 @@ class IntelI210(Device):
     
     CAPABILITIES  = [Capability.LTC]
 
+    #MAC+PHY delay(Qav Latencies) from datasheet assuming 100 mbit link
+    HARDWARE_DELAY_MIN = 2168
+    HARDWARE_DELAY_MAX = 2384
+
     PCI_IDS_VALID = ['8086:1533', '8086:1536', '8086:1537', '8086:1538', '8086:157B',
                      '8086:157C', '8086:15F6']
 
@@ -42,7 +46,7 @@ class IntelI210(Device):
 
         logger.info(f"Initializing {__class__.__name__}")
 
-        super().__init__(IntelI210.NUM_TX_QUEUES, IntelI210.NUM_RX_QUEUES)
+        super().__init__(IntelI210.NUM_TX_QUEUES, IntelI210.NUM_RX_QUEUES, IntelI210.HARDWARE_DELAY_MIN, IntelI210.HARDWARE_DELAY_MAX)
 
         self.capabilities = [Capability.LTC]
 

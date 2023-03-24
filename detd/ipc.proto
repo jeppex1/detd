@@ -21,4 +21,6 @@ message StreamQosResponse {
 	bool    ok = 1;
 	string  vlan_interface = 2;
 	uint32  socket_priority = 3;
+	uint32  txminmac = 4;
+	uint32  txmaxmac = 5;
 }
