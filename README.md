@@ -193,6 +193,55 @@ ethtool --set-eee eth0 eee off
 
 
 
+### Setup a talker from python with options
+
+The following code will connect to the detd service and configure the specified stream with options.
+
+```python
+from detd import *
+
+
+
+def setup_stream_config():
+
+    interface_name = "eno1"
+    interval = 20 * 1000 * 1000 # ns
+    size = 1522                 # Bytes
+
+    txoffset = 250 * 1000       # ns
+    addr = "03:C0:FF:EE:FF:4E"
+    vid = 3
+    pcp = 6
+
+    options = Options()
+    options.qdiscmap = "0 1 0 0 0 0 0 0 2 3 0 0 0 0 0 0"
+    options.flag = "0x2"
+    interface = Interface(interface_name)
+    stream = StreamConfiguration(addr, vid, pcp, txoffset)
+    traffic = TrafficSpecification(interval, size)
+
+    config = Configuration(interface, stream, traffic, options)
+
+    return config
+
+
+
+
+proxy = ServiceProxy()
+
+config = setup_stream_config()
+response = proxy.add_talker(config)
+
+print(response)
+```
+
+This example specifies the map parameter for taprio(qdiscmap), and lets you pick if you want to run taprio in software, txassist or offload mode(flag).
+Otherwise it behaves same as the example above.
+Any combination of options work, current options you can choose from are: qdiscmap and flag.
+
+
+
+
 ### Setup a talker stream for an arbitrary command, using a script that calls detd functions
 
 The script [setup_qos.sh](./setup_qos.sh) allows for quick experimentation without modifying an existing application.
