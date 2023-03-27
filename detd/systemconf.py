@@ -58,6 +58,7 @@ from .tc import CommandTc
 
 from .common import Check
 from .common import Mbps_to_bps
+from .common import Options
 
 from .logger import get_logger
 
@@ -221,7 +222,7 @@ class QdiscConfigurator:
     def setup(self, interface, mapping, scheduler, base_time, options):
         tc = CommandTc()
 
-        if options.flag not in ["0x0","0x1","0x2"]:
+        if not Options.valid_flag(options.flag):
             if interface.device.supports_qbv():
                 tc.set_taprio_offload(interface, mapping, scheduler, base_time)
             elif interface.device.supports_ltc():

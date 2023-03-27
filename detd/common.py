@@ -193,24 +193,24 @@ class Options:
         
         
     def set_qdiscmap(self, qdiscmap):
-        if valid_qdiscmap(qdiscmap):
+        if Options.valid_qdiscmap(qdiscmap):
             self.qdiscmap = qdiscmap
         
         
     def set_taprio_flag(self, flag):
-        if valid_flag(flag):
+        if Options.valid_flag(flag):
             self.flag = flag
         
            
-            
-def valid_qdiscmap(qdiscmap):
-    if re.match(r'^[0-8]( [0-8]){15}$', qdiscmap):
-        return True
-    return False
+    @classmethod
+    def valid_qdiscmap(qdiscmap):
+        if re.match(r'^[0-15]( [0-15]){15}$', qdiscmap):
+            return True
+        return False
 
-
-def valid_flag(flag):
-    if re.match(r'0x[0-2]$', flag):
-        return True
-    return False
+    @classmethod
+    def valid_flag(flag):
+        if re.match(r'0x[0-2]$', flag):
+            return True
+        return False
         
