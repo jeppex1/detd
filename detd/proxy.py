@@ -83,7 +83,7 @@ class ServiceProxy:
 
 
 
-    def send_qos_request(self, configuration, setup_socket):
+    def send_qos_request(self, configuration, setup_socket, clean=False):
         request = StreamQosRequest()
         request.interface = configuration.interface.name
         request.period = configuration.traffic.interval
@@ -96,6 +96,7 @@ class ServiceProxy:
         request.setup_socket = setup_socket
         request.flag = configuration.options.flag
         request.qdiscmap = configuration.options.qdiscmap
+        request.clean = clean
 
         message = request.SerializeToString()
         self.send(message)
@@ -151,3 +152,17 @@ class ServiceProxy:
         txoffsetmax = response.txmaxmac
 
         return vlan_interface, soprio, txoffsetmin, txoffsetmax
+    
+
+    def cleanup(self, configuration):
+        
+        self.setup_socket()
+        self.send_qos_request(configuration, setup_socket=False, clean=True)
+        response = self.receive_cleanup_qos_response()
+        self.sock.close()
+
+        if response.ok:
+            return True
+        else:
+            return False
+        

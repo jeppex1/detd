@@ -65,6 +65,10 @@ class Interface:
     def setup(self, mapping, scheduler, stream, options):
         self.device.setup(self, mapping, scheduler, stream, options)
 
+    
+    def cleanup(self, interface, stream):
+        self.device.cleanup(self, interface, stream)
+
 
 
 
@@ -90,6 +94,16 @@ class Manager():
                 self.talker_manager[config.interface.name] = interface_manager
 
             return self.talker_manager[config.interface.name].add_talker(config)
+        
+
+    def cleanup(self, interface, stream):
+
+        logger.info("Preparing cleanup in Manager")
+
+        with self.lock:
+
+            interface_manager = InterfaceManager(interface)
+            return interface_manager.cleanup(interface, stream)
 
 
 
@@ -217,3 +231,13 @@ class InterfaceManager():
         safety_margin = multiple * period
 
         config.stream.base_time = (now + ns_until_next_cycle) + safety_margin
+
+
+    def cleanup(self, interface, stream):
+        try:
+            self.interface.cleanup(interface, stream)
+            return True
+        except:
+            logger.exception("Error while attempting cleanup")
+            
+
