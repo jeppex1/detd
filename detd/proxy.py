@@ -158,7 +158,7 @@ class ServiceProxy:
         
         self.setup_socket()
         self.send_qos_request(configuration, setup_socket=False, clean=True)
-        response = self.receive_cleanup_qos_response()
+        response = self.receive_qos_response()
         self.sock.close()
 
         if response.ok:
