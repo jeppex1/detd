@@ -366,11 +366,16 @@ class Scheduler:
 
 
     def clear(self):
+
+        self.schedule = Schedule()
+
         self.traffics = []
+        
         best_effort_traffic = Traffic(TrafficType.BEST_EFFORT)
         best_effort_traffic.socket_prio = self.mapping.best_effort_socket_prio
         best_effort_traffic.queue = self.mapping.interface.device.best_effort_tx_queues[0]
         best_effort_traffic.tc = self.mapping.best_effort_tc
+
         self.traffics.append(best_effort_traffic)
 
 
