@@ -67,7 +67,7 @@ class Interface:
 
     
     def cleanup(self, interface, stream):
-        self.device.cleanup(self, interface, stream)
+        self.device.cleanup(interface, stream)
 
 
 

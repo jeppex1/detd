@@ -374,10 +374,11 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
             except Exception as ex:
                 logger.exception("Exception raised while attempting cleanup")
             
-            vlan_interface = None
-            soprio = None
-            txoffsetmin = None
-            txoffsetmax = None
+            #not None trash values
+            vlan_interface = "1"
+            soprio = 1
+            txoffsetmin = 1
+            txoffsetmax = 1
 
             try:
                 self.send_qos_response(ok, vlan_interface, soprio, txoffsetmin, txoffsetmax)
