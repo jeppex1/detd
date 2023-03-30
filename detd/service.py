@@ -357,7 +357,7 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
         elif request.clean == True:
             try:
                 ok = False
-                success = self.cleanup()
+                success = self.cleanup(request)
                 ok = True
             except Exception as ex:
                 logger.exception("Exception raised while attempting cleanup")
