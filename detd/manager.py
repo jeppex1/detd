@@ -234,10 +234,29 @@ class InterfaceManager():
 
 
     def cleanup(self, config):
+        
         try:
             self.interface.cleanup(self.interface, config.stream)
-            return True
         except:
             logger.exception("Error while attempting cleanup")
-            
+        
+        # Retrieve device rate
+        try:
+           rate = self.interface.rate
+        except RuntimeError:
+            logger.exception("Error while retrieving device rate")
+            raise
 
+        soprio, tc, queue = self.mapping.assign_and_map(config.stream.pcp, self.scheduler.traffics)
+
+        traffic = Traffic(rate, TrafficType.SCHEDULED, config)
+        traffic.tc = tc
+
+
+        # Remove stream from schedule
+        try:
+            self.scheduler.remove(traffic)
+            self.mapping.unmap_and_free(soprio, traffic.tc, queue)
+        except Exception as ex:
+            logger.exception("Error while removing traffic from schedule:\n")
+            raise
