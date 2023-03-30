@@ -39,6 +39,7 @@ from .manager import Manager
 from .scheduler import Configuration
 from .scheduler import StreamConfiguration
 from .scheduler import TrafficSpecification
+from .scheduler import CleanupStreamConfiguration
 
 from .systemconf import Check
 from .systemconf import QdiscConfigurator
@@ -298,7 +299,7 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
         interface_name = request.interface
         vid = request.vid
         interface = Interface(interface_name)
-        stream = StreamConfiguration(0, vid, 0, 0)
+        stream = CleanupStreamConfiguration(vid)
 
         success = self.server.manager.cleanup(interface, stream) 
         return success
