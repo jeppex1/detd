@@ -203,13 +203,13 @@ class Options:
         
            
     @classmethod
-    def valid_qdiscmap(qdiscmap):
+    def valid_qdiscmap(cls, qdiscmap):
         if re.match(r'^[0-15]( [0-15]){15}$', qdiscmap):
             return True
         return False
 
     @classmethod
-    def valid_flag(flag):
+    def valid_flag(cls, flag):
         if re.match(r'0x[0-2]$', flag):
             return True
         return False
