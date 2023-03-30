@@ -296,12 +296,24 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
     
 
     def _cleanup(self, request):
-        interface_name = request.interface
+        addr = request.dmac
         vid = request.vid
-        interface = Interface(interface_name)
-        stream = CleanupStreamConfiguration(vid)
+        pcp = request.pcp
+        txoffset = request.txmin
+        interval = request.period
+        size = request.size
+        interface_name = request.interface
 
-        success = self.server.manager.cleanup(interface, stream) 
+        options = Options()
+        options.flag = request.flag
+        options.qdiscmap = request.qdiscmap
+        interface = Interface(interface_name)
+        stream = StreamConfiguration(addr, vid, pcp, txoffset)
+        traffic = TrafficSpecification(interval, size)
+
+        config = Configuration(interface, stream, traffic, options)
+
+        success = self.server.manager.cleanup(config) 
         return success
 
 

@@ -389,21 +389,3 @@ class Scheduler:
 
             self.schedule.add_best_effort_padding(self.traffics[0])
             # FIXME: error handling
-
-
-class CleanupStreamConfiguration:
-
-    def __init__(self, vid):
-
-        if not Check.is_valid_vlan_id(vid):
-            raise TypeError("Invalid VLAN ID")
-
-        self.vid = vid
-
-class CleanupConfiguration:
-
-    def __init__(self, interface, stream):
-
-        self.interface = interface
-        self.stream = stream
-        self.traffic = 0
