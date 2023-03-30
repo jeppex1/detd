@@ -39,7 +39,6 @@ from .manager import Manager
 from .scheduler import Configuration
 from .scheduler import StreamConfiguration
 from .scheduler import TrafficSpecification
-from .scheduler import CleanupStreamConfiguration
 
 from .systemconf import Check
 from .systemconf import QdiscConfigurator
