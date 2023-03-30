@@ -364,6 +364,11 @@ class Scheduler:
         self.reschedule()
 
 
+    def clear(self):
+        self.traffics = []
+        self.reschedule()
+
+
     def reschedule(self):
         if len(self.traffics) == 1 and self.traffics[0].type == TrafficType.BEST_EFFORT:
             self.schedule = Schedule()

@@ -250,7 +250,7 @@ class InterfaceManager():
 
         # Remove stream from schedule
         try:
-            self.scheduler.remove(traffic)
+            self.scheduler.clear()
             self.mapping.unmap_and_free(soprio, traffic.tc, queue)
         except Exception as ex:
             logger.exception("Error while removing traffic from schedule:\n")
