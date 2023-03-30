@@ -399,3 +399,11 @@ class CleanupStreamConfiguration:
             raise TypeError("Invalid VLAN ID")
 
         self.vid = vid
+
+class CleanupConfiguration:
+
+    def __init__(self, interface, stream):
+
+        self.interface = interface
+        self.stream = stream
+        
