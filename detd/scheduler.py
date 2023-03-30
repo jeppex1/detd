@@ -406,4 +406,4 @@ class CleanupConfiguration:
 
         self.interface = interface
         self.stream = stream
-        
+        self.traffic = 0
