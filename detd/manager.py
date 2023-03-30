@@ -65,6 +65,10 @@ class Interface:
     def setup(self, mapping, scheduler, stream, options):
         self.device.setup(self, mapping, scheduler, stream, options)
 
+    
+    def cleanup(self, interface, stream):
+        self.device.cleanup(interface, stream)
+
 
 
 
@@ -90,6 +94,21 @@ class Manager():
                 self.talker_manager[config.interface.name] = interface_manager
 
             return self.talker_manager[config.interface.name].add_talker(config)
+        
+
+    def cleanup(self, config):
+
+        logger.info("Preparing cleanup in Manager")
+
+        with self.lock:
+            
+            
+            if config.interface.name in self.talker_manager:
+                success = self.talker_manager[config.interface.name].cleanup(config)
+                del self.talker_manager[config.interface.name]
+                return success
+            else:
+                logger.info("The supplied information has no corresponding interface to remove")
 
 
 
@@ -217,3 +236,33 @@ class InterfaceManager():
         safety_margin = multiple * period
 
         config.stream.base_time = (now + ns_until_next_cycle) + safety_margin
+
+
+    def cleanup(self, config):
+        
+        # Retrieve device rate
+        try:
+           rate = self.interface.rate
+        except RuntimeError:
+            logger.exception("Error while retrieving device rate")
+            raise
+
+        soprio, tc, queue = self.mapping.assign_and_map(config.stream.pcp, self.scheduler.traffics)
+
+        traffic = Traffic(rate, TrafficType.SCHEDULED, config)
+        traffic.tc = tc
+
+
+        # Remove stream from schedule
+        try:
+            self.scheduler.clear()
+            self.mapping.unmap_and_free(soprio, traffic.tc, queue)
+        except Exception as ex:
+            logger.exception("Error while removing traffic from schedule:\n")
+            raise
+
+        try:
+            self.interface.cleanup(self.interface, config.stream)
+        except:
+            logger.exception("Error while attempting cleanup")
+        return True

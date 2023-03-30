@@ -163,6 +163,13 @@ class SystemConfigurator:
             raise
 
 
+    def cleanup(self, interface, stream):
+        
+        self.qdisc.unset(interface)
+
+        self.vlan.unset(interface, stream)
+
+
 
 
 class DeviceConfigurator:

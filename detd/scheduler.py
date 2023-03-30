@@ -332,6 +332,7 @@ class Scheduler:
         logger.info(f"Initializing {__class__.__name__}")
 
         self.schedule = Schedule()
+        self.mapping = mapping
 
         # traffics will hold all the traffics including best effort
         # The specific index will be referenced from each slot in the schedule
@@ -351,7 +352,7 @@ class Scheduler:
     def add(self, traffic):
 
         logger.info("Adding traffic to schedule")
-
+        print(self.traffics)
         if self.schedule.conflicts_with_traffic(traffic):
             logger.error(f"Traffic conflicts with schedule: {self.schedule}")
             raise ValueError("Traffic conflicts with existing schedule")
@@ -362,6 +363,20 @@ class Scheduler:
     def remove(self, traffic):
         self.traffics.remove(traffic)
         self.reschedule()
+
+
+    def clear(self):
+
+        self.schedule = Schedule()
+
+        self.traffics = []
+
+        best_effort_traffic = Traffic(TrafficType.BEST_EFFORT)
+        best_effort_traffic.socket_prio = self.mapping.best_effort_socket_prio
+        best_effort_traffic.queue = self.mapping.interface.device.best_effort_tx_queues[0]
+        best_effort_traffic.tc = self.mapping.best_effort_tc
+
+        self.traffics.append(best_effort_traffic)
 
 
     def reschedule(self):

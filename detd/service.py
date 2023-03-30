@@ -176,6 +176,7 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
         else:
             self.add_talker = self._add_talker
             self.add_talker_socket = self._add_talker_socket
+            self.cleanup = self._cleanup
 
 
     def send(self, msg):
@@ -291,6 +292,28 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_PRIORITY, 6)
         s.bind(("127.0.0.1", 20001))
         return s
+    
+
+    def _cleanup(self, request):
+        addr = request.dmac
+        vid = request.vid
+        pcp = request.pcp
+        txoffset = request.txmin
+        interval = request.period
+        size = request.size
+        interface_name = request.interface
+
+        options = Options()
+        options.flag = request.flag
+        options.qdiscmap = request.qdiscmap
+        interface = Interface(interface_name)
+        stream = StreamConfiguration(addr, vid, pcp, txoffset)
+        traffic = TrafficSpecification(interval, size)
+
+        config = Configuration(interface, stream, traffic, options)
+
+        success = self.server.manager.cleanup(config) 
+        return success
 
 
     def mock_socket_cleanup(self, socket):
@@ -303,7 +326,7 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
 
         request = self.receive_qos_request()
 
-        if request.setup_socket == True:
+        if request.setup_socket == True and request.clean == False:
             # FIXME: perform actual configuration
             # Currently manager only supports non-socket config
             try:
@@ -324,7 +347,7 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
             self.mock_socket_cleanup(sock)
 
 
-        elif request.setup_socket == False:
+        elif request.setup_socket == False and request.clean == False:
             try:
                 ok = False
                 vlan_interface, soprio, txoffsetmin, txoffsetmax = self.add_talker(request)
@@ -342,3 +365,23 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
                 self.send_qos_response(ok, vlan_interface, soprio, txoffsetmin, txoffsetmax)
             except Exception as ex:
                 logger.exception("Exception raised while sending the QoS response after setting up a talker")
+
+        elif request.clean == True:
+            try:
+                ok = False
+                success = self.cleanup(request)
+                ok = True
+            except Exception as ex:
+                logger.exception("Exception raised while attempting cleanup")
+            
+            #not None trash values
+            vlan_interface = "1"
+            soprio = 1
+            txoffsetmin = 1
+            txoffsetmax = 1
+
+            try:
+                self.send_qos_response(ok, vlan_interface, soprio, txoffsetmin, txoffsetmax)
+            except Exception as ex:
+                logger.exception("Exception raised while sending the QoS response after clean up")
+            

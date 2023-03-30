@@ -97,6 +97,10 @@ class Device:
         self.systemconf.setup(interface, mapping, scheduler, stream, options)
 
 
+    def cleanup(self, interface, stream):
+        self.systemconf.cleanup(interface, stream)
+
+
     def get_rate(self, interface):
         # FIXME: runtime changes in rate need to be managed
         sysinfo = SystemInformation()
