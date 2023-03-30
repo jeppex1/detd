@@ -235,11 +235,6 @@ class InterfaceManager():
 
     def cleanup(self, config):
         
-        try:
-            self.interface.cleanup(self.interface, config.stream)
-        except:
-            logger.exception("Error while attempting cleanup")
-        
         # Retrieve device rate
         try:
            rate = self.interface.rate
@@ -260,3 +255,8 @@ class InterfaceManager():
         except Exception as ex:
             logger.exception("Error while removing traffic from schedule:\n")
             raise
+
+        try:
+            self.interface.cleanup(self.interface, config.stream)
+        except:
+            logger.exception("Error while attempting cleanup")
