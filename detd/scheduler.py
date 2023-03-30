@@ -352,7 +352,7 @@ class Scheduler:
     def add(self, traffic):
 
         logger.info("Adding traffic to schedule")
-
+        print(self.traffics)
         if self.schedule.conflicts_with_traffic(traffic):
             logger.error(f"Traffic conflicts with schedule: {self.schedule}")
             raise ValueError("Traffic conflicts with existing schedule")
@@ -370,7 +370,7 @@ class Scheduler:
         self.schedule = Schedule()
 
         self.traffics = []
-        
+
         best_effort_traffic = Traffic(TrafficType.BEST_EFFORT)
         best_effort_traffic.socket_prio = self.mapping.best_effort_socket_prio
         best_effort_traffic.queue = self.mapping.interface.device.best_effort_tx_queues[0]
