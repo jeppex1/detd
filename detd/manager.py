@@ -101,9 +101,14 @@ class Manager():
         logger.info("Preparing cleanup in Manager")
 
         with self.lock:
-
-            interface_manager = InterfaceManager(config.interface, config.options)
-            return interface_manager.cleanup(config)
+            
+            
+            if config.interface.name in self.talker_manager:
+                success = self.talker_manager[config.interface.name].cleanup(config)
+                del self.talker_manager[config.interface.name]
+                return success
+            else:
+                logger.info("The supplied information has no corresponding interface to remove")
 
 
 
@@ -260,3 +265,4 @@ class InterfaceManager():
             self.interface.cleanup(self.interface, config.stream)
         except:
             logger.exception("Error while attempting cleanup")
+        return True
