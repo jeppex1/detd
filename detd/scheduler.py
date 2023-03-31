@@ -352,7 +352,7 @@ class Scheduler:
     def add(self, traffic):
 
         logger.info("Adding traffic to schedule")
-        
+
         if self.schedule.conflicts_with_traffic(traffic):
             logger.error(f"Traffic conflicts with schedule: {self.schedule}")
             raise ValueError("Traffic conflicts with existing schedule")
