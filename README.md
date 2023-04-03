@@ -215,7 +215,7 @@ def setup_stream_config():
 
     options = Options()
     options.qdiscmap = "0 1 0 0 0 0 0 0 2 3 0 0 0 0 0 0"
-    options.flag = "0x2"
+    options.flag = "0x1"
     
     interface = Interface(interface_name)
     stream = StreamConfiguration(addr, vid, pcp, txoffset)
