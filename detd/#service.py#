@@ -39,7 +39,6 @@ from .manager import Interface
 from .manager import Manager
 
 from .scheduler import Configuration
-from .scheduler import ListenerConfiguration
 from .scheduler import StreamConfiguration
 from .scheduler import TrafficSpecification
 
@@ -48,8 +47,6 @@ from .systemconf import QdiscConfigurator
 from .systemconf import DeviceConfigurator
 from .systemconf import SystemInformation
 from .systemconf import CommandIp
-
-from .common import Options
 
 from .logger import setup_root_logger
 from .logger import get_logger
@@ -207,7 +204,7 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
         return request
 
 
-    def build_qos_response(self, ok, vlan_interface=None, soprio=None, txoffsetmin=None, txoffsetmax=None, fd=None):
+    def build_qos_response(self, ok, vlan_interface=None, soprio=None, fd=None):
         response = StreamQosResponse()
 
         response.ok = ok
@@ -216,17 +213,15 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
             if fd is None:
                 response.vlan_interface = vlan_interface
                 response.socket_priority = soprio
-                response.txminmac = txoffsetmin
-                response.txmaxmac = txoffsetmax
 
         message = response.SerializePartialToString()
         return message
 
 
 
-    def send_qos_response(self, ok, vlan_interface, soprio, txoffsetmin, txoffsetmax):
+    def send_qos_response(self, ok, vlan_interface, soprio):
 
-        message = self.build_qos_response(ok, vlan_interface, soprio, txoffsetmin, txoffsetmax)
+        message = self.build_qos_response(ok, vlan_interface, soprio)
         self.send(message)
 
 
@@ -235,6 +230,14 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
         message = self.build_qos_response(ok, fd=fd)
         self.send_fd(message, fd)
 
+
+    def receive_listener_qos_request(self):
+
+        data = self.packet
+        request = StreamListenerQosRequest()
+        request.ParseFromString(data)
+
+        return request
 
 
     def build_listener_qos_response(self, ok, vlan_interface=None, soprio=None, fd=None):
@@ -254,16 +257,16 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
 
     def send_listener_qos_response(self, ok, vlan_interface, soprio):
 
-        message = self.build_listener_qos_response(ok, vlan_interface, soprio)
+        message = self.build_Listener_qos_response(ok, vlan_interface, soprio)
         self.send(message)
 
 
     def send_listener_qos_socket_response(self, ok, fd):
 
-        message = self.build_listener_qos_response(ok, fd=fd)
+        message = self.build_Listener_qos_response(ok, fd=fd)
         self.send_fd(message, fd)
 
-    def receive_listener_qos_request(self):
+    def receive_qos_request(self):
 
         data = self.packet
         request = StreamListenerQosRequest()
@@ -281,18 +284,15 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
         size = request.size
         interface_name = request.interface
 
-        options = Options()
-        options.flag = request.flag
-        options.qdiscmap = request.qdiscmap
         interface = Interface(interface_name)
         stream = StreamConfiguration(addr, vid, pcp, txoffset)
         traffic = TrafficSpecification(interval, size)
 
-        config = Configuration(interface, stream, traffic, options)
+        config = Configuration(interface, stream, traffic)
 
-        vlan_interface, soprio, txoffsetmin, txoffsetmax = self.server.manager.add_talker(config)
+        vlan_interface, soprio = self.server.manager.add_talker(config)
 
-        return vlan_interface, soprio, txoffsetmin, txoffsetmax
+        return vlan_interface, soprio
 
 
     def _mock_add_talker(self, request):
@@ -318,9 +318,9 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
 
             config = Configuration(interface, stream, traffic)
 
-            vlan_interface, soprio, txoffsetmin, txoffsetmax = self.server.manager.add_talker(config)
+            vlan_interface, soprio = self.server.manager.add_talker(config)
 
-        return vlan_interface, soprio, txoffsetmin, txoffsetmax
+        return vlan_interface, soprio
 
 
     def _add_talker_socket(self, request):
@@ -339,20 +339,15 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
         addr = request.dmac
         vid = request.vid
         pcp = request.pcp
-        txoffset = 0
-        interval = 0
-        size = 0
-        maddress = request.maddress
-        
+
         interface_name = request.interface
 
         interface = Interface(interface_name)
-        stream = StreamConfiguration(addr, vid, pcp, 0)
-        traffic = TrafficSpecification(0, 0)
+        stream = StreamConfiguration(addr, vid, pcp, txoffset)
+        traffic = TrafficSpecification(interval, size)
 
-        config = ListenerConfiguration(interface, stream, traffic, maddress)
+        config = Configuration(interface, stream, traffic)
 
-        #add maddr
         vlan_interface, soprio = self.server.manager.add_listener(config)
 
         return vlan_interface, soprio
@@ -410,7 +405,7 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
 
         #if talker/listener possible? through request?
         
-        if request.talker == True:
+        if request.listener == False:
             if request.setup_socket == True:
             # FIXME: perform actual configuration
             # Currently manager only supports non-socket config
@@ -432,32 +427,30 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
                 self.mock_socket_cleanup(sock)
 
 
-        elif request.setup_socket == False:
-            try:
-                ok = False
-                vlan_interface, soprio, txoffsetmin, txoffsetmax = self.add_talker(request)
-                ok = True
-            except Exception as ex:
-                logger.exception("Exception raised while setting up a talker")
+            elif request.setup_socket == False:
+                try:
+                    ok = False
+                    vlan_interface, soprio = self.add_talker(request)
+                    ok = True
+                except Exception as ex:
+                    logger.exception("Exception raised while setting up a talker")
 
-            if not ok:
-                vlan_interface = None
-                soprio = None
-                txoffsetmin = None
-                txoffsetmax = None
+                if not ok:
+                    vlan_interface = None
+                    soprio = None
 
-            try:
-                self.send_qos_response(ok, vlan_interface, soprio, txoffsetmin, txoffsetmax)
-            except Exception as ex:
-                logger.exception("Exception raised while sending the QoS response after setting up a talker")
+                try:
+                    self.send_qos_response(ok, vlan_interface, soprio)
+                except Exception as ex:
+                    logger.exception("Exception raised while sending the QoS response after setting up a talker")
 
-        elif request.talker == False:
+        elif request.listener == True:
             if request.setup_socket == True:
             # FIXME: perform actual configuration
             # Currently manager only supports non-socket config
                 try:
                     ok = False
-                    sock = self.add_listener_socket(listenerrequest)
+                    sock = self.add_listener_socket(request)
                     ok = True
                 except Exception as ex:
                     logger.exception("Exception raised while setting up a listener socket")
@@ -476,7 +469,7 @@ class ServiceRequestHandler(socketserver.DatagramRequestHandler):
             elif request.setup_socket == False:
                 try:
                     ok = False
-                    vlan_interface, soprio = self.add_listener(listenerrequest)
+                    vlan_interface, soprio = self.add_listener(request)
                     ok = True
                 except Exception as ex:
                     logger.exception("Exception raised while setting up a listener")

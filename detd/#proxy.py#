@@ -67,7 +67,7 @@ class ServiceProxy:
 #            self.sock.close()
 
 
-    def recv(self):
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            def recv(self):
         message, addr = self.sock.recvfrom(1024)
 
         return message
@@ -96,9 +96,6 @@ class ServiceProxy:
         request.txmin = configuration.stream.txoffset
         request.txmax = configuration.stream.txoffset
         request.setup_socket = setup_socket
-        request.flag = configuration.options.flag
-        request.qdiscmap = configuration.options.qdiscmap
-        request.talker = True
 
         message = request.SerializeToString()
         self.send(message)
@@ -132,8 +129,6 @@ class ServiceProxy:
         request.vid = configuration.stream.vid
         request.pcp = configuration.stream.pcp
         request.setup_socket = setup_socket
-        request.talker = False
-        request.maddress = configuration.maddress
 
         message = request.SerializeToString()
         self.send(message)
@@ -185,42 +180,8 @@ class ServiceProxy:
 
         vlan_interface = response.vlan_interface
         soprio = response.socket_priority
-        txoffsetmin = response.txminmac
-        txoffsetmax = response.txmaxmac
 
-        return vlan_interface, soprio, txoffsetmin, txoffsetmax
-
-
-    def add_listener_socket(self, configuration):
-
-        self.setup_socket()
-        self.send_qos_listener_request(configuration, setup_socket=True)
-        status, sock = self.receive_listener_qos_socket_response()
-        self.sock.close()
-
-        if not status.ok:
-            raise RuntimeError("The configuration could not be applied")
-
-        return sock
-
-
-    def add_listener(self, configuration):
-
-        self.setup_socket()
-        self.send_listener_qos_request(configuration, setup_socket=False)
-        response = self.receive_listener_qos_response()
-        self.sock.close()
-
-        if not response.ok:
-
-            raise RuntimeError("The configuration could not be applied")
-
-        vlan_interface = response.vlan_interface
-        soprio = response.socket_priority
-        txoffsetmin = response.txminmac
-        txoffsetmax = response.txmaxmac
-
-        return vlan_interface, soprio, txoffsetmin, txoffsetmax
+        return vlan_interface, soprio
 
 
     def add_listener_socket(self, configuration):

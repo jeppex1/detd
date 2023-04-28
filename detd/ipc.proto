@@ -14,6 +14,7 @@ message StreamQosRequest {
 	uint32 basetime = 10;
 	string flag = 11;
 	string qdiscmap = 12;
+	bool   talker = 13;	
 }
 
 
@@ -23,4 +24,40 @@ message StreamQosResponse {
 	uint32  socket_priority = 3;
 	int32  txminmac = 4;
 	int32  txmaxmac = 5;
+}
+
+
+message StreamListenerQosRequest {
+	string interface = 1;
+	string dmac = 2;
+	uint32 vid = 3;
+	uint32 pcp = 4;
+	bool   talker = 5;
+	string maddress = 6;
+	bool   setup_socket = 9;
+}
+
+message StreamListenerQosResponse {
+	bool    ok = 1;
+	string  vlan_interface = 2;
+	uint32  socket_priority = 3;
+	int32  txminmac = 4;
+	int32  txmaxmac = 5;
+}
+
+
+message StreamListenerQosRequest {
+	string interface = 1;
+	string dmac = 2;
+	uint32 vid = 3;
+	uint32 pcp = 4;
+	bool   talker = 5;
+	string maddress = 6;
+	bool   setup_socket = 9;
+}
+
+message StreamListenerQosResponse {
+	bool    ok = 1;
+	string  vlan_interface = 2;
+	uint32  socket_priority = 3;
 }

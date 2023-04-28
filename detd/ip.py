@@ -44,9 +44,22 @@ class CommandIp:
 
         self.run(str(cmd))
 
+    def set_vlan_ingress(self, interface, stream):
+
+        #soprio_to_pcp = transform_soprio_to_pcp(mapping.soprio_to_pcp)
+        cmd = CommandStringIpLinkSetVlanIngress(interface.name, stream.vid)
+
+        self.run(str(cmd))
+        
 
     def unset_vlan(self, interface, stream):
         cmd = CommandStringIpLinkUnsetVlan(interface.name, stream.vid)
+
+        self.run(str(cmd))
+
+    def subscribe_multicast(self, name, maddress):
+#        cmd = "ip maddr add 33:33:EF:01:01:01 dev enp173s0"
+        cmd = CommandStringSubscribeMulticast(name, maddress)
 
         self.run(str(cmd))
 
@@ -87,6 +100,26 @@ class CommandStringIpLinkSetVlan (CommandString):
 
 
 
+class CommandStringIpLinkSetVlanIngress (CommandString):
+
+    def __init__(self, device, vid):
+
+        template = '''
+            ip link add
+                    link     $device
+                    name     $device.$id
+                    type     vlan
+                    protocol 802.1Q
+                    id       $id
+                    ingress  0:0 1:1 2:2 3:3 4:4 5:5 6:7 7:7'''
+
+        params = {
+            'device'        : device,
+            'id'            : vid
+        }
+
+        super().__init__(template, params)
+
 
 class CommandStringIpLinkUnsetVlan (CommandString):
 
@@ -97,6 +130,19 @@ class CommandStringIpLinkUnsetVlan (CommandString):
         params = {
             'device' : device,
             'id'     : vid
+        }
+
+        super().__init__(template, params)
+
+class CommandStringSubscribeMulticast (CommandString):
+
+    def __init__(self, device, maddress):
+
+        template = '''ip maddr add $maddress dev $device'''
+
+        params = {
+            'device'        : device,
+            'maddress'      : maddress
         }
 
         super().__init__(template, params)

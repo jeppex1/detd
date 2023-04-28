@@ -93,6 +93,11 @@ class CommandEthtool:
 
         self.run(cmd)
 
+    def set_features_ingress(self, interface):
+        cmd = CommandStringEthtoolFeaturesIngress(interface.name, interface.device.features)
+
+        self.run(cmd)
+
 
 def check_eee(eee):
     if eee not in ["on", "off"]:
@@ -128,6 +133,21 @@ class CommandStringEthtoolFeatures(CommandString):
     def __init__(self, interface, features):
 
         template = 'ethtool --features $interface $features'
+
+        params = {
+            'interface' : interface,
+            'features'  : ""
+        }
+        for feature, value in features.items():
+            params['features'] += "{0} {1} ".format(feature, value)
+
+        super().__init__(template, params)
+
+class CommandStringEthtoolFeaturesIngress(CommandString):
+
+    def __init__(self, interface, features):
+
+        template = 'ethtool --features $interface rxvlan off hw-tc-offload on'
 
         params = {
             'interface' : interface,

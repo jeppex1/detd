@@ -62,8 +62,11 @@ class Interface:
         return self.device.get_rate(self)
 
 
-    def setup(self, mapping, scheduler, stream, options):
-        self.device.setup(self, mapping, scheduler, stream, options)
+    def setup_talker(self, mapping, scheduler, stream):
+        self.device.setup_talker(self, mapping, scheduler, stream)
+
+    def setup_listener(self, stream, maddress):
+        self.device.setup_listener(self, stream, maddress)
 
 
 
@@ -76,6 +79,7 @@ class Manager():
         logger.info(f"Initializing {__class__.__name__}")
 
         self.talker_manager = {}
+        self.listener_manager = {}
         self.lock = threading.Lock()
 
 
@@ -90,6 +94,18 @@ class Manager():
                 self.talker_manager[config.interface.name] = interface_manager
 
             return self.talker_manager[config.interface.name].add_talker(config)
+
+    def add_listener(self, config):
+
+        logger.info("Adding listener to Manager")
+
+        with self.lock:
+
+            if not config.interface.name in self.listener_manager:
+                interface_manager = InterfaceManager(config.interface)
+                self.listener_manager[config.interface.name] = interface_manager
+
+        return self.listener_manager[config.interface.name].add_listener(config)
 
 
 
@@ -174,7 +190,7 @@ class InterfaceManager():
 
         # Configure the system
         try:
-            self.interface.setup(self.mapping, self.scheduler, config.stream, config.options)
+            self.interface.setup_talker(self.mapping, self.scheduler, config.stream)
         except:
             # Leave the internal structures in a consistent state
             logger.error("Error applying the configuration on the system")
@@ -188,6 +204,40 @@ class InterfaceManager():
         
         # FIXME: generate the name to use for the VLAN interface in the manager
         # instead of in the command string class.
+
+        vlan_interface = "{}.{}".format(self.interface.name, config.stream.vid)
+        return vlan_interface, soprio, txoffsetmin, txoffsetmax
+
+
+    def add_listener(self, config):
+        '''
+        Performs the local configuration for the configuration provided
+        and returns the associated VLAN interface and socket priority
+
+
+        Parameters:
+
+            config: configuration
+
+
+        Returns:
+
+            VLAN interface
+            socket priority
+        '''
+
+        logger.info("Adding listener to InterfaceManager")
+
+
+        #soprio, tc, queue = self.mapping.assign_and_map(config.stream.pcp, self.scheduler.traffics)
+        soprio = self.mapping.assign_soprio_and_map(config.stream.pcp)
+
+        # Configure the system
+        try:
+            self.interface.setup_listener(config.stream, config.maddress)
+        except RuntimeError:
+            logger.error("Error applying the configuration on the system")
+            raise
 
         vlan_interface = "{}.{}".format(self.interface.name, config.stream.vid)
         return vlan_interface, soprio, txoffsetmin, txoffsetmax
