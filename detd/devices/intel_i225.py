@@ -26,7 +26,7 @@ class IntelI225(Device):
     NUM_TX_QUEUES = 4
     NUM_RX_QUEUES = 4
 
-    CAPABILITIES = [Capability.Qbv]
+    CAPABILITIES = [Capability.Qbv, Capability.LTC]
 
     #Placeholder MAC+PHY latency
     HARDWARE_LATENCY_MIN = 1000
@@ -56,7 +56,7 @@ class IntelI225(Device):
         if pci_id in IntelI225.PCI_IDS_UNPROGRAMMED:
             raise "The flash image in this i225 device is empty, or the NVM configuration loading failed."
 
-        self.capabilities = [Capability.Qbv]
+        self.capabilities = [Capability.Qbv, Capability.LTC]
 
         self.features['rxvlan'] = 'off'
         #self.features['hw-tc-offload'] = 'on'
