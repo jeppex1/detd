@@ -101,7 +101,7 @@ class CommandTc:
         
     def install_etf(self, interface):
         
-        parent = "100:1"
+        parent = "100:2"
         delta = "500000"
         
         cmd = CommandStringTcEtfInstall(interface.name, parent, delta)
